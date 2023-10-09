@@ -1,0 +1,84 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text.RegularExpressions;
+
+class LexicalAnalyzer
+{
+    static void Main()
+    {
+        string inputFile = "input.txt";
+        string outputFile = "output.txt";
+
+        try
+        {
+            
+            List<string> keywords = new List<string> { "void", "int", "for" };
+            List<string> operators = new List<string> { "=", "+", "-", "*", "/", "(", ")", "{", "}", ";", "<", ">", "<=", ">=", "==", "!=", "&&", "||", "!" };
+            List<string> separators = new List<string> { "(", ")", "{", "}", ";", "[", "]" };
+
+            // Biểu thức chính quy để tách token
+            string pattern = @"([-+]?(\d+((\.\d*)?|\.\d+))([eE][-+]?\d+)?| \b\w+\b |[=\+\-\*/(){};<>\.])";
+            //string pattern = @"(\b\w+\b|[=+\-*/(){};<>]|[-+]?\d+(\.\d+)?([eE][-+]?\d+)?)";
+
+            using (StreamReader reader = new StreamReader(inputFile))
+            using (StreamWriter writer = new StreamWriter(outputFile)) 
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    // Sử dụng biểu thức chính quy để tách token
+                    MatchCollection matches = Regex.Matches(line, pattern);
+
+                    foreach (Match match in matches)
+                    {
+                        string token = match.Value.Trim();
+
+                        if (keywords.Contains(token))
+                        {
+                            writer.WriteLine($"keyword : {token}");
+                        }
+                        else if (IsNumber(token))
+                        {
+                            writer.WriteLine($"num : {token}");
+                        }
+                        else if (IsIdentifier(token))
+                        {
+                            writer.WriteLine($"identifier : {token}");
+                        }
+
+                        else if (operators.Contains(token))
+                        {
+                            writer.WriteLine($"{token} : {token}");
+                        }
+                        else if (separators.Contains(token))
+                        {
+                            writer.WriteLine($"{token} : {token}");
+                        }
+                        else
+                        {
+                            writer.WriteLine($"Error : {token}");
+                        }
+                    }
+                }
+            }
+
+            Console.WriteLine("Dịch thành công! Kết quả đã được lưu vào tệp output.txt.");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Đã xảy ra lỗi: {e.Message}");
+        }
+    }
+
+    static bool IsIdentifier(string token)
+    {
+        return Regex.IsMatch(token, "^[a-zA-Z_][a-zA-Z0-9_]*$");
+    }
+
+    static bool IsNumber(string token)
+    {
+       // return Regex.IsMatch(token, @"^[-+]?(\d+   (\.\d*)?   |   \.\d+)    ([eE][-+]?\d+)?$");
+        return Regex.IsMatch(token, @"^[-+]?\d+(\.\d+)?([eE][+-]?\d+)?$");
+    }
+}
